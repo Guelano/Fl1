@@ -1,0 +1,552 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flowers For You</title>
+<!-- Importation d'une jolie police manuscrite -->
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Nunito:wght@300;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-top: #0f0c29;
+    --bg-mid: #302b63;
+    --bg-bot: #24243e;
+    --title-glow: #d4a5ff;
+    --envelope-color: #ffb7c5;
+    --envelope-shadow: #e08fa0;
+    --heart-color: #ff4d6d;
+    --card-bg: rgba(255, 255, 255, 0.85);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; overflow-x: hidden; }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    color: #fff;
+    font-family: 'Nunito', sans-serif;
+    background: linear-gradient(-45deg, var(--bg-top), var(--bg-mid), var(--bg-bot), #1a1a2e);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+  }
+
+  @keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  /* ---------- Ambient Particles ---------- */
+  .particles {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  }
+  .particle {
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+    opacity: 0;
+    animation: floatUp linear infinite;
+  }
+  @keyframes floatUp {
+    0% { transform: translateY(100vh) scale(0); opacity: 0; }
+    20% { opacity: 0.7; }
+    80% { opacity: 0.5; }
+    100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+  }
+
+  /* ---------- Title ---------- */
+  h1 {
+    position: relative; z-index: 2;
+    margin: 0 0 20px;
+    text-align: center;
+    font-family: 'Dancing Script', cursive;
+    font-size: clamp(2.5rem, 8vw, 4rem);
+    background: linear-gradient(to right, #fff, var(--title-glow));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 15px rgba(212, 165, 255, 0.4));
+    animation: titleFadeIn 1.5s ease-out;
+  }
+  @keyframes titleFadeIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ---------- Bouquet Container ---------- */
+  .bouquet-wrapper {
+    position: relative;
+    width: min(85vw, 320px);
+    aspect-ratio: 3/4;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    z-index: 1;
+  }
+
+  .bouquet {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-origin: bottom center;
+    transition: transform 0.5s ease;
+  }
+  
+  /* Swaying animation for the whole bunch */
+  .bouquet.swaying {
+    animation: gentleSway 4s ease-in-out infinite alternate;
+  }
+  @keyframes gentleSway {
+    0% { transform: rotate(-1deg); }
+    100% { transform: rotate(1deg); }
+  }
+
+  /* ---------- Flowers ---------- */
+  .flower-group {
+    position: absolute;
+    bottom: 35%; 
+    left: 50%;
+    width: 100%;
+    height: 60%;
+    transform: translateX(-50%);
+    pointer-events: none;
+  }
+
+  .flower {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: var(--w);
+    transform-origin: bottom center;
+    transform: translateX(-50%) rotate(var(--r)) scale(0);
+    opacity: 0;
+    transition: all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+    filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.3));
+  }
+
+  /* Wrapper / Paper Cone */
+  .wrapper-cone {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 140px;
+    height: 180px;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #fdfbf7 0%, #e6ded3 100%);
+    clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%);
+    z-index: 5;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.1);
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  /* Ribbon */
+  .ribbon {
+    position: absolute;
+    top: 30%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 110%;
+    height: 25px;
+    background: linear-gradient(90deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    z-index: 6;
+    opacity: 0;
+    transition: opacity 0.5s ease 0.5s;
+  }
+  .ribbon::after {
+    content: '';
+    position: absolute;
+    right: -10px;
+    top: 0;
+    width: 20px;
+    height: 100%;
+    background: inherit;
+    clip-path: polygon(0 0, 100% 50%, 0 100%);
+  }
+
+  /* ---------- Envelope ---------- */
+  .envelope-container {
+    position: absolute;
+    bottom: 10%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 160px;
+    height: 110px;
+    z-index: 10;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+  }
+  .envelope-container:hover {
+    transform: translateX(-50%) scale(1.05);
+  }
+
+  .envelope-body {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--envelope-color);
+    border-radius: 0 0 10px 10px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    z-index: 2;
+    overflow: hidden;
+  }
+  /* Inside triangle of envelope */
+  .envelope-body::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--envelope-shadow);
+    clip-path: polygon(0 0, 50% 100%, 100% 0);
+    opacity: 0.3;
+  }
+
+  .envelope-flap {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #ffcdd6;
+    clip-path: polygon(0 0, 100% 0, 50% 100%);
+    transform-origin: top;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), z-index 0.2s;
+    z-index: 3;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+  }
+
+  .seal {
+    position: absolute;
+    top: 45%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 24px;
+    color: var(--heart-color);
+    z-index: 4;
+    filter: drop-shadow(0 0 5px rgba(255, 77, 109, 0.6));
+    transition: opacity 0.3s;
+  }
+
+  /* Open State */
+  .bouquet.open .envelope-flap {
+    transform: rotateX(180deg);
+    z-index: 1;
+  }
+  .bouquet.open .seal {
+    opacity: 0;
+  }
+
+  /* ---------- Heart Trigger ---------- */
+  .heart-trigger {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 5rem;
+    color: var(--heart-color);
+    cursor: pointer;
+    z-index: 20;
+    filter: drop-shadow(0 0 20px rgba(255, 77, 109, 0.6));
+    animation: heartbeat 1.5s infinite;
+    transition: all 0.5s ease;
+    background: none;
+    border: none;
+    padding: 0;
+  }
+  @keyframes heartbeat {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); }
+    50% { transform: translate(-50%, -50%) scale(1.15); }
+  }
+  .hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, -50%) scale(0);
+  }
+
+  /* ---------- Card (Letter) ---------- */
+  .card {
+    position: absolute;
+    bottom: 15%;
+    left: 50%;
+    width: 280px;
+    padding: 20px;
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.4);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+    z-index: 8; /* Behind envelope initially, then pops out */
+    transform: translateX(-50%) translateY(50px) scale(0.9);
+    opacity: 0;
+    transition: all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+    color: #4a4a4a;
+    text-align: center;
+  }
+  
+  .bouquet.open .card {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-120px) scale(1);
+    z-index: 15; /* Moves in front */
+  }
+
+  .card h2 {
+    font-family: 'Dancing Script', cursive;
+    margin: 0 0 10px;
+    color: #d6336c;
+    font-size: 1.8rem;
+  }
+  .card p {
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin-bottom: 15px;
+  }
+  .signature {
+    font-family: 'Dancing Script', cursive;
+    font-size: 1.2rem;
+    color: #302b63;
+    margin-top: 10px;
+    display: block;
+    text-align: right;
+  }
+
+  /* ---------- Balloons ---------- */
+  .balloon-layer {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+  }
+  .balloon {
+    position: absolute;
+    bottom: -100px;
+    width: 50px;
+    height: 65px;
+    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.9), var(--c) 60%, #000 120%);
+    border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+    box-shadow: inset -5px -5px 10px rgba(0,0,0,0.1);
+    animation: rise var(--dur) linear infinite;
+    animation-delay: var(--delay);
+    left: var(--x);
+    pointer-events: auto;
+    cursor: pointer;
+  }
+  /* String using SVG path logic simulated via CSS pseudo is hard, so we use a simple line */
+  .balloon::after {
+    content: '';
+    position: absolute;
+    bottom: -20px;
+    left: 50%;
+    width: 1px;
+    height: 20px;
+    background: rgba(255,255,255,0.6);
+  }
+  .balloon:hover {
+    transform: scale(1.1);
+  }
+  .balloon.pop {
+    animation: popAnim 0.2s forwards;
+  }
+  @keyframes rise {
+    0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(-120vh) rotate(10deg); opacity: 0; }
+  }
+  @keyframes popAnim {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.4); opacity: 0.8; }
+    100% { transform: scale(0); opacity: 0; }
+  }
+
+  /* ---------- Replay Button ---------- */
+  .replay-btn {
+    margin-top: 30px;
+    padding: 10px 25px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: white;
+    border-radius: 30px;
+    cursor: pointer;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 500;
+    transition: all 0.3s;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 20;
+  }
+  .replay-btn.visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .replay-btn:hover {
+    background: rgba(255,255,255,0.25);
+    transform: translateY(-2px);
+  }
+
+</style>
+</head>
+<body>
+
+  <!-- Background Particles -->
+  <div class="particles" id="particles"></div>
+  <div class="balloon-layer" id="balloons"></div>
+
+  <h1>Flowers For You</h1>
+
+  <div class="bouquet-wrapper">
+    
+    <!-- Initial Heart Trigger -->
+    <button class="heart-trigger" id="startBtn" aria-label="Start surprise">♥</button>
+
+    <div class="bouquet" id="bouquet">
+      
+      <!-- Flowers (SVG Definitions reused) -->
+      <svg style="display:none;">
+        <defs>
+          <linearGradient id="petalGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#ffdde1;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#ee9ca7;stop-opacity:1" />
+          </linearGradient>
+          <linearGradient id="roseGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#ffecd2;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#fcb69f;stop-opacity:1" />
+          </linearGradient>
+          <g id="tulip">
+             <path d="M30 120 Q30 80 30 50" stroke="#4a7c35" stroke-width="3" fill="none"/>
+             <path d="M30 50 C10 50 10 20 30 20 C50 20 50 50 30 50 Z" fill="url(#petalGrad)"/>
+             <path d="M30 50 C20 50 20 30 30 30 C40 30 40 50 30 50 Z" fill="rgba(255,255,255,0.3)"/>
+          </g>
+          <g id="rose">
+             <path d="M30 120 Q30 80 30 60" stroke="#4a7c35" stroke-width="3" fill="none"/>
+             <circle cx="30" cy="40" r="15" fill="url(#roseGrad)"/>
+             <path d="M30 40 m-10 0 a10 10 0 1 0 20 0 a10 10 0 1 0 -20 0" fill="none" stroke="#d66d75" stroke-width="1"/>
+             <path d="M30 40 m-5 0 a5 5 0 1 0 10 0 a5 5 0 1 0 -10 0" fill="#e29587"/>
+          </g>
+        </defs>
+      </svg>
+
+      <div class="flower-group">
+        <!-- Tulips and Roses positioned randomly -->
+        <svg class="flower" style="--w:60px; --r:-20deg; left:20%" viewBox="0 0 60 130"><use href="#tulip"/></svg>
+        <svg class="flower" style="--w:70px; --r:15deg; left:70%" viewBox="0 0 60 130"><use href="#rose"/></svg>
+        <svg class="flower" style="--w:65px; --r:-5deg; left:45%" viewBox="0 0 60 130"><use href="#tulip"/></svg>
+        <svg class="flower" style="--w:55px; --r:25deg; left:85%" viewBox="0 0 60 130"><use href="#tulip"/></svg>
+        <svg class="flower" style="--w:60px; --r:-25deg; left:10%" viewBox="0 0 60 130"><use href="#rose"/></svg>
+        <svg class="flower" style="--w:68px; --r:0deg; left:50%; z-index:2" viewBox="0 0 60 130"><use href="#rose"/></svg>
+      </div>
+
+      <!-- Wrapping Paper -->
+      <div class="wrapper-cone"></div>
+      <div class="ribbon"></div>
+
+      <!-- The Letter Card -->
+      <div class="card" id="card">
+        <h2>My Dearest,</h2>
+        <p>Just like these flowers, my feelings for you bloom a little more every day.</p>
+        <p>You make my world brighter just by being in it.</p>
+        <span class="signature">With Love ♥</span>
+      </div>
+
+      <!-- The Envelope -->
+      <div class="envelope-container" id="envelope">
+        <div class="envelope-flap"></div>
+        <div class="seal">♥</div>
+        <div class="envelope-body"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <button class="replay-btn" id="replayBtn">Replay Magic ↺</button>
+
+<script>
+  // --- Particle System ---
+  const particleContainer = document.getElementById('particles');
+  function createParticles() {
+    for(let i=0; i<30; i++) {
+      let p = document.createElement('div');
+      p.className = 'particle';
+      p.style.left = Math.random() * 100 + '%';
+      p.style.width = p.style.height = (Math.random() * 3 + 1) + 'px';
+      p.style.animationDuration = (Math.random() * 10 + 5) + 's';
+      p.style.animationDelay = (Math.random() * 5) + 's';
+      particleContainer.appendChild(p);
+    }
+  }
+  createParticles();
+
+  // --- Main Logic ---
+  const startBtn = document.getElementById('startBtn');
+  const bouquet = document.getElementById('bouquet');
+  const envelope = document.getElementById('envelope');
+  const flowers = document.querySelectorAll('.flower');
+  const wrapper = document.querySelector('.wrapper-cone');
+  const ribbon = document.querySelector('.ribbon');
+  const replayBtn = document.getElementById('replayBtn');
+  const balloonLayer = document.getElementById('balloons');
+
+  // Step 1: Bloom Flowers
+  startBtn.addEventListener('click', () => {
+    startBtn.classList.add('hidden');
+    bouquet.classList.add('swaying');
+    
+    // Animate flowers appearing one by one
+    flowers.forEach((f, index) => {
+      setTimeout(() => {
+        f.style.opacity = '1';
+        f.style.transform = `translateX(-50%) rotate(${f.style.getPropertyValue('--r')}) scale(1)`;
+      }, index * 150);
+    });
+
+    // Show wrapper
+    setTimeout(() => {
+      wrapper.style.opacity = '1';
+      wrapper.style.transform = 'translateX(-50%) translateY(0)';
+      ribbon.style.opacity = '1';
+    }, 1000);
+  });
+
+  // Step 2: Open Envelope
+  envelope.addEventListener('click', () => {
+    if(bouquet.classList.contains('open')) return;
+    
+    bouquet.classList.add('open');
+    spawnBalloons();
+    setTimeout(() => {
+      replayBtn.classList.add('visible');
+    }, 2000);
+  });
+
+  // Step 3: Balloons
+  function spawnBalloons() {
+    const colors = ['#ff9a9e', '#fad0c4', '#a18cd1', '#fbc2eb', '#8fd3f4'];
+    for(let i=0; i<15; i++) {
+      let b = document.createElement('div');
+      b.className = 'balloon';
+      b.style.setProperty('--c', colors[Math.floor(Math.random()*colors.length)]);
+      b.style.setProperty('--x', Math.random() * 100 + '%');
+      b.style.setProperty('--dur', (Math.random() * 5 + 6) + 's');
+      b.style.setProperty('--delay', (Math.random() * 2) + 's');
+      
+      b.addEventListener('click', function() {
+        this.classList.add('pop');
+        setTimeout(() => this.remove(), 200);
+      });
+      
+      balloonLayer.appendChild(b);
+    }
+  }
+
+  // Reset
+  replayBtn.addEventListener('click', () => {
+    location.reload(); // Simplest way to reset everything cleanly
+  });
+
+</script>
+</body>
+</html>
